@@ -1,17 +1,17 @@
 import { envs } from "../config/plugins/envs.plugin";
+import { LogSeverityLevel } from "../domain/entities/log.entity";
 import { CheckService } from "../domain/use-cases/checks/check-service";
 import { SendEmailLogs } from "../domain/use-cases/email/send-email-logs";
 import { FileSystemDataSource } from "../infrastructure/datasources/file-system.datasource";
+import { MongoLogDataSource } from "../infrastructure/datasources/mongo-log.datasource";
 import { LogRepositoryImpl } from "../infrastructure/repositories/log.repository.impl";
 import { CronService } from "./cron/cron-service";
 import { EmailService } from "./email/email.service";
 
-const fileSystemLogRepository = new LogRepositoryImpl(
-  new FileSystemDataSource()
-);
+const logRepository = new LogRepositoryImpl(new FileSystemDataSource());
 const emailService = new EmailService();
 export class Server {
-  public static start() {
+  public static async start() {
     console.log("Server started");
 
     // TODO: Mandar email
@@ -23,11 +23,14 @@ export class Server {
     // CronService.createJob("*/5 * * * * *", () => {
     //   const url = "https://google.com";
     //   new CheckService(
-    //     fileSystemLogRepository,
+    //     logRepository,
     //     () => console.log(`Service is up ${url}`),
     //     (error) => console.log(`Service is down ${error}`)
     //   ).execute(url);
     // });
+
+    const logs = await logRepository.getLogs(LogSeverityLevel.low);
+    console.log(logs);
   }
 }
 
